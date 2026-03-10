@@ -42,8 +42,8 @@ function initializeFirebase() {
 
         admin.initializeApp({
           credential: admin.credential.cert(serviceAccount),
-          databaseURL: `https://${process.env.FIREBASE_PROJECT_ID || 'wildlifetracker-4d28b'}.firebaseio.com`,
-          storageBucket: `${process.env.FIREBASE_PROJECT_ID || 'wildlifetracker-4d28b'}.firebasestorage.app`
+          databaseURL: `https://${process.env.FIREBASE_PROJECT_ID || 'ecoexist-app'}.firebaseio.com`,
+          storageBucket: `${process.env.FIREBASE_PROJECT_ID || 'ecoexist-app'}.firebasestorage.app`
         });
         console.log('Firebase Admin SDK initialized successfully with Storage');
 
@@ -63,17 +63,10 @@ function initializeFirebase() {
 // Initialize Firebase safely
 try {
   initializeFirebase();
-  // Access the named database
+  // Access the default Firestore database
   db = admin.firestore();
 
-  // Handle serverless environment where settings might already be configured
-  try {
-    db.settings({ databaseId: 'wildlifetracker-db' });
-  } catch (settingsError) {
-    console.log('Firebase settings already configured, continuing...');
-  }
-
-  console.log('Firebase initialized successfully');
+  console.log('Firebase initialized successfully (ecoexist-app)');
 
 } catch (error) {
   console.error('Failed to initialize Firebase:', error.message);
@@ -101,7 +94,7 @@ const allowedOrigins = [
 app.use(cors({
   origin: (origin, cb) => {
     if (!origin) return cb(null, true);
-    if (allowedOrigins.includes(origin) || allowedOrigins.includes('*') || origin.endsWith('jonobenjamin.github.io')) {
+    if (allowedOrigins.includes(origin) || allowedOrigins.includes('*') || origin.endsWith('.github.io')) {
       return cb(null, true);
     }
     cb(null, false);
