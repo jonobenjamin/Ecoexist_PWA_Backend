@@ -146,6 +146,17 @@ router.post('/request-pin', async (req, res) => {
       });
     }
 
+    // Check EmailJS configuration (required for PIN emails)
+    const requiredEmailVars = ['EMAILJS_SERVICE_ID', 'EMAILJS_PIN_TEMPLATE_ID', 'EMAILJS_PUBLIC_KEY', 'EMAILJS_PRIVATE_KEY'];
+    const missing = requiredEmailVars.filter(v => !process.env[v]);
+    if (missing.length > 0) {
+      console.error('EmailJS not configured. Missing env vars:', missing.join(', '));
+      return res.status(503).json({
+        success: false,
+        message: 'Email service not configured. Please contact the administrator.'
+      });
+    }
+
     // Generate PIN
     const pin = generatePin();
     const hashedPin = hashPin(pin);
