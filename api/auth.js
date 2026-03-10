@@ -4,6 +4,26 @@ const admin = require('firebase-admin');
 
 const router = express.Router();
 
+// Ensure Firebase is initialized (Vercel serverless may load auth before server.js init runs)
+function ensureFirebase() {
+  if (!admin.apps.length && process.env.FIREBASE_SERVICE_ACCOUNT_KEY) {
+    let jsonString = process.env.FIREBASE_SERVICE_ACCOUNT_KEY.trim();
+    if (jsonString.startsWith('"') && jsonString.endsWith('"')) jsonString = jsonString.slice(1, -1);
+    jsonString = jsonString.replace(/\\"/g, '"');
+    if (!jsonString.trim().startsWith('{')) {
+      const start = jsonString.indexOf('{');
+      const end = jsonString.lastIndexOf('}') + 1;
+      if (start !== -1 && end > start) jsonString = jsonString.slice(start, end);
+    }
+    const serviceAccount = JSON.parse(jsonString);
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount),
+      databaseURL: `https://${process.env.FIREBASE_PROJECT_ID || 'ecoexist-app'}.firebaseio.com`,
+      storageBucket: `${process.env.FIREBASE_PROJECT_ID || 'ecoexist-app'}.firebasestorage.app`
+    });
+  }
+}
+
 // Verify password against stored hash (matches admin.js hashPassword)
 // Salt stored as hex - decode to 16-byte Buffer for pbkdf2 (correct approach)
 // Also supports legacy: salt was hex string passed directly to pbkdf2
@@ -36,6 +56,7 @@ router.post('/login', async (req, res) => {
       });
     }
 
+    ensureFirebase();
     const db = admin.firestore();
     const usersSnap = await db.collection('users').get();
 
@@ -427,6 +448,7 @@ router.post('/verify-pin', async (req, res) => {
     };
 
     console.log('Token details:', { uid, claims: additionalClaims });
+    ensureFirebase();
     const customToken = await admin.auth().createCustomToken(uid, additionalClaims);
     console.log('Custom token created successfully');
 
