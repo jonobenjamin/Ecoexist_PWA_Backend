@@ -26,6 +26,13 @@ function initializeFirebase() {
         // Unescape any escaped quotes
         jsonString = jsonString.replace(/\\"/g, '"');
 
+        // If pasted JS file by mistake, extract JSON object (starts with {, ends with })
+        if (!jsonString.trim().startsWith('{')) {
+          const start = jsonString.indexOf('{');
+          const end = jsonString.lastIndexOf('}') + 1;
+          if (start !== -1 && end > start) jsonString = jsonString.slice(start, end);
+        }
+
         const serviceAccount = JSON.parse(jsonString);
         console.log('Successfully parsed service account from environment variable');
 

@@ -22,6 +22,12 @@ function initializeFirebase() {
 
         jsonString = jsonString.replace(/\\"/g, '"');
 
+        if (!jsonString.trim().startsWith('{')) {
+          const start = jsonString.indexOf('{');
+          const end = jsonString.lastIndexOf('}') + 1;
+          if (start !== -1 && end > start) jsonString = jsonString.slice(start, end);
+        }
+
         const serviceAccount = JSON.parse(jsonString);
         console.log('Successfully parsed service account from environment variable');
 
