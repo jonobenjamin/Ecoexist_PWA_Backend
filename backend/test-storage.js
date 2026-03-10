@@ -22,7 +22,7 @@ function initializeFirebase() {
 
         admin.initializeApp({
           credential: admin.credential.cert(serviceAccount),
-          databaseURL: `https://${process.env.FIREBASE_PROJECT_ID || 'wildlifetracker-4d28b'}.firebaseio.com`
+          databaseURL: `https://${process.env.FIREBASE_PROJECT_ID || 'ecoexist-app'}.firebaseio.com`
         });
 
         console.log('✅ Firebase Admin SDK initialized');
