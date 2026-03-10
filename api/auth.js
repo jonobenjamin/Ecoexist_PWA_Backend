@@ -193,7 +193,7 @@ router.post('/request-pin', async (req, res) => {
 
     // Send PIN via email using EmailJS (reuse existing notification service)
     try {
-      const emailSubject = 'Your Wildlife Tracker PIN Code';
+      const emailSubject = 'Your Ecoexist PIN Code';
 
       // HTML email template
       const emailBodyHtml = `
@@ -202,7 +202,7 @@ router.post('/request-pin', async (req, res) => {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Your Wildlife Tracker PIN</title>
+    <title>Your Ecoexist PIN</title>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
@@ -302,14 +302,14 @@ router.post('/request-pin', async (req, res) => {
 <body>
     <div class="container">
         <div class="header">
-            <div class="logo">🦌 Wildlife Tracker</div>
+            <div class="logo">🌿 Ecoexist</div>
             <div class="tagline">Field Observation Platform</div>
         </div>
 
         <div class="content">
             <h2>Hello ${name.trim()}!</h2>
 
-            <p>Welcome to Wildlife Tracker. To complete your sign-in, please use the verification PIN below:</p>
+            <p>Welcome to Ecoexist. To complete your sign-in, please use the verification PIN below:</p>
 
             <div class="pin-container">
                 <div class="pin-label">Your Verification PIN</div>
@@ -326,7 +326,7 @@ router.post('/request-pin', async (req, res) => {
             </div>
 
             <p>
-                Enter this PIN in the Wildlife Tracker app to complete your authentication.
+                Enter this PIN in the Ecoexist app to complete your authentication.
                 This helps us ensure that only authorized field users can access the observation platform.
             </p>
 
@@ -337,12 +337,12 @@ router.post('/request-pin', async (req, res) => {
 
         <div class="footer">
             <div class="contact">
-                <strong>Wildlife Tracker System</strong><br>
-                Field observation and conservation platform
+                <strong>Ecoexist</strong><br>
+                Ecoexist monitoring platform
             </div>
 
             <p style="margin-top: 20px; font-size: 12px; color: #999;">
-                This is an automated message from Wildlife Tracker.<br>
+                This is an automated message from Ecoexist.<br>
                 Please do not reply to this email.
             </p>
         </div>
@@ -493,7 +493,7 @@ async function sendPinEmail(toEmail, subject, body, isHtml = false) {
       reply_to: toEmail,  // Add reply_to to match template
       subject: subject,
       message: body,
-      from_name: process.env.EMAIL_FROM_NAME || 'Wildlife Tracker',
+      from_name: process.env.EMAIL_FROM_NAME || 'Ecoexist',
       html_content: isHtml ? body : undefined
     }
   };

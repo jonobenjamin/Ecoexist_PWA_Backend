@@ -127,7 +127,7 @@ app.use(express.urlencoded({ extended: true }));
 // Root endpoint
 app.get('/', (req, res) => {
   res.json({
-    message: 'Wildlife Tracker API',
+    message: 'Ecoexist API',
     version: '1.0.0',
     endpoints: {
       health: '/health',

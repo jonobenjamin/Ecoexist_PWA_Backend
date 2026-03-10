@@ -18,7 +18,7 @@ const requireAdmin = (req, res, next) => {
   const adminKey = req.headers['x-api-key'];
 
   // Use environment variable for admin key, fallback to a default for development
-  const expectedAdminKey = process.env.ADMIN_API_KEY || 'wildlife_admin_2024';
+  const expectedAdminKey = process.env.ADMIN_API_KEY || 'ecoexist_admin_2024';
 
   console.log('🔑 Received API key:', adminKey ? '***' + adminKey.slice(-4) : 'NONE');
   console.log('🔑 Expected API key ends with:', '***' + expectedAdminKey.slice(-4));
