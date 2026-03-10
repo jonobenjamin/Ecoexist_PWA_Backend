@@ -201,6 +201,8 @@ router.post('/', upload.single('image'), async (req, res) => {
       poaching_type,
       poached_animal,
       maintenance_type,
+      herd_type,
+      direction_of_travel,
       latitude,
       longitude,
       timestamp,
@@ -259,6 +261,21 @@ router.post('/', upload.single('image'), async (req, res) => {
       });
     }
 
+    if (category === 'Corridor monitoring') {
+      if (!herd_type) {
+        return res.status(400).json({
+          success: false,
+          error: 'Herd type (Breeding herd or Bull) is required for corridor monitoring'
+        });
+      }
+      if (!direction_of_travel) {
+        return res.status(400).json({
+          success: false,
+          error: 'Movement direction is required for corridor monitoring'
+        });
+      }
+    }
+
     // Validate poaching type for poaching incidents
     const validPoachingTypes = ['Carcass', 'Snare', 'Poacher'];
     if (category === 'Incident' && incident_type && incident_type.toLowerCase().includes('poach')) {
@@ -292,6 +309,10 @@ router.post('/', upload.single('image'), async (req, res) => {
       if (poached_animal) observationData.poached_animal = poached_animal;
     }
     if (category === 'Maintenance') observationData.maintenance_type = maintenance_type;
+    if (category === 'Corridor monitoring') {
+      observationData.herd_type = herd_type;
+      observationData.direction_of_travel = direction_of_travel;
+    }
 
     // Add GPS if provided
     if (latitude !== undefined && longitude !== undefined) {
