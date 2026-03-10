@@ -1,0 +1,18 @@
+{
+  "version": 2,
+  "builds": [{"src": "server.js", "use": "@vercel/node"}],
+  "routes": [{"src": "/(.*)", "dest": "server.js"}],
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {"key": "Access-Control-Allow-Origin", "value": "https://jonobenjamin.github.io"},
+        {"key": "Access-Control-Allow-Methods", "value": "GET, POST, PUT, PATCH, DELETE, OPTIONS"},
+        {"key": "Access-Control-Allow-Headers", "value": "Origin, X-Requested-With, Content-Type, Accept, Authorization, x-api-key"},
+        {"key": "Access-Control-Allow-Credentials", "value": "true"}
+      ]
+    }
+  ],
+  "crons": [{"path": "/api/cron/fire-check", "schedule": "0 4 * * *"}],
+  "env": {"NODE_ENV": "production"}
+}
