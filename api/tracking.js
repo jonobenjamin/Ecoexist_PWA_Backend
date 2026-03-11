@@ -60,7 +60,12 @@ module.exports = (db) => {
         user,
         totalTimeSeconds,
         distanceMeters,
-        geoJson
+        geoJson,
+        travelFrom,
+        travelTo,
+        reasonForTravel,
+        startDistanceKm,
+        endDistanceKm
       } = req.body;
 
       if (!startTime || !endTime || !trackingType || !user) {
@@ -103,6 +108,11 @@ module.exports = (db) => {
         distanceMeters: distanceMeters ?? null,
         geoJson: geoJson ?? null,
         vehicle: trackingType.toLowerCase() === 'vehicle' ? vehicle : null,
+        travelFrom: travelFrom ?? null,
+        travelTo: travelTo ?? null,
+        reasonForTravel: reasonForTravel ?? null,
+        startDistanceKm: startDistanceKm ?? null,
+        endDistanceKm: endDistanceKm ?? null,
         timestamp: new Date().toISOString(),
         synced: true
       };
