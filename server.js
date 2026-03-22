@@ -83,6 +83,30 @@ try {
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Handle CORS preflight (OPTIONS) immediately - must run before any other middleware
+const corsOrigin = (origin) => {
+  if (!origin) return true;
+  if (origin === 'https://jonobenjamin.github.io' || origin.endsWith('.github.io')) return true;
+  if (['http://localhost:3000', 'http://localhost:5000', 'http://127.0.0.1:3000', 'http://127.0.0.1:5000'].includes(origin)) return true;
+  if (process.env.ALLOWED_ORIGINS?.split(',').map(o => o.trim()).includes(origin)) return true;
+  return false;
+};
+
+app.use((req, res, next) => {
+  const origin = req.get('origin');
+  if (req.method === 'OPTIONS') {
+    if (corsOrigin(origin)) {
+      res.setHeader('Access-Control-Allow-Origin', origin || '*');
+    }
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, x-api-key');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Access-Control-Max-Age', '86400');
+    return res.status(204).end();
+  }
+  next();
+});
+
 // Security middleware
 app.use(helmet());
 
