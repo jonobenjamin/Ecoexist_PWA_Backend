@@ -196,7 +196,12 @@ app.use('/api/fires', require('./api/fires')(db));
 app.use('/api/cron/fire-check', require('./api/cron-fire-check'));
 app.use('/api/water-monitoring', require('./api/water-monitoring')(db));
 app.use('/api/tracking', require('./api/tracking')(db));
-app.use('/api/awt-data-firebase', require('./api/awt-data-firebase'));
+try {
+  app.use('/api/awt-data-firebase', require('./api/awt-data-firebase'));
+} catch (e) {
+  console.warn('awt-data-firebase not loaded:', e.message);
+  app.use('/api/awt-data-firebase', (req, res) => res.status(503).json({ error: 'AWT data API unavailable' }));
+}
 app.use('/api/meeting-reports', require('./api/meeting-reports')(db));
 
 // Error handling middleware
