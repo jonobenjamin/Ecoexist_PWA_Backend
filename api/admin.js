@@ -1,6 +1,7 @@
 const express = require('express');
 const admin = require('firebase-admin');
 const crypto = require('crypto');
+const { verifyAuthBearerAdminOnly } = require('./auth-helper');
 
 const router = express.Router();
 
@@ -10,35 +11,29 @@ function hashPassword(password) {
   return { salt: salt.toString('hex'), hash };
 }
 
-// Middleware to check for admin authentication (API key based) - ALWAYS ENABLED
-const requireAdmin = (req, res, next) => {
-  console.log('🔐 ADMIN AUTH CHECK - Request to:', req.originalUrl);
+// Admin: Firebase Bearer + Firestore role admin, or legacy x-api-key === ADMIN_API_KEY
+const requireAdmin = async (req, res, next) => {
+  try {
+    const adminKey = req.headers['x-api-key'];
+    const expectedAdminKey = process.env.ADMIN_API_KEY;
+    if (expectedAdminKey && adminKey === expectedAdminKey) {
+      req.adminUid = 'admin_api_key';
+      return next();
+    }
 
-  // Check for admin API key in header (same as map dashboard uses)
-  const adminKey = req.headers['x-api-key'];
-
-  // Use environment variable for admin key, fallback to a default for development
-  const expectedAdminKey = process.env.ADMIN_API_KEY || 'ecoexist_admin_2024';
-
-  console.log('🔑 Received API key:', adminKey ? '***' + adminKey.slice(-4) : 'NONE');
-  console.log('🔑 Expected API key ends with:', '***' + expectedAdminKey.slice(-4));
-
-  if (!adminKey || adminKey !== expectedAdminKey) {
-    console.log('🚫 ADMIN AUTH FAILED - Access denied');
-    return res.status(401).json({
-      success: false,
-      message: 'Admin authentication required - invalid or missing API key',
-      debug: {
-        received: !!adminKey,
-        expectedEndsWith: expectedAdminKey.slice(-4)
-      }
-    });
+    const v = await verifyAuthBearerAdminOnly(req.headers.authorization);
+    if (!v.ok) {
+      return res.status(403).json({
+        success: false,
+        message: 'Admin authentication required'
+      });
+    }
+    req.adminUid = v.uid;
+    next();
+  } catch (err) {
+    console.error('requireAdmin:', err);
+    res.status(500).json({ success: false, message: 'Authentication error' });
   }
-
-  console.log('✅ ADMIN AUTH SUCCESSFUL - Access granted');
-  // Set admin UID for logging purposes
-  req.adminUid = 'admin_user';
-  next();
 };
 
 // Get all users
@@ -107,7 +102,7 @@ router.post('/users', requireAdmin, async (req, res) => {
       });
     }
 
-    const validRoles = ['admin', 'user', 'viewer'];
+    const validRoles = ['admin', 'funder', 'user', 'viewer'];
     const userRole = validRoles.includes(role) ? role : 'user';
 
     const db = admin.firestore();
@@ -196,7 +191,7 @@ router.patch('/users/:userId', requireAdmin, async (req, res) => {
     }
 
     if (role !== undefined) {
-      const validRoles = ['admin', 'user', 'viewer'];
+      const validRoles = ['admin', 'funder', 'user', 'viewer'];
       if (validRoles.includes(role)) {
         updates.role = role;
       }

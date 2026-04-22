@@ -1,4 +1,5 @@
 const express = require('express');
+const { verifyAuthBearerAdminOnly } = require('./auth-helper');
 const router = express.Router();
 
 // Check if user is revoked (reuse pattern from observations)
@@ -39,10 +40,27 @@ module.exports = (db) => {
     next();
   };
 
-  router.use(validateApiKey);
+  const validateApiKeyOrAdminBearer = async (req, res, next) => {
+    try {
+      const apiKey = req.headers['x-api-key'] || req.query.apiKey;
+      if (apiKey && process.env.API_KEY && apiKey === process.env.API_KEY) {
+        return next();
+      }
+      const v = await verifyAuthBearerAdminOnly(req.headers.authorization);
+      if (!v.ok) {
+        return res.status(401).json({
+          error: 'Unauthorized',
+          message: 'Valid API key or admin session required'
+        });
+      }
+      next();
+    } catch (e) {
+      next(e);
+    }
+  };
 
   // POST /api/tracking - Create new tracking activity
-  router.post('/', async (req, res) => {
+  router.post('/', validateApiKey, async (req, res) => {
     try {
       if (!db) {
         return res.status(503).json({
@@ -137,7 +155,7 @@ module.exports = (db) => {
   });
 
   // GET /api/tracking - Fetch tracking activities (for admin/map display)
-  router.get('/', async (req, res) => {
+  router.get('/', validateApiKeyOrAdminBearer, async (req, res) => {
     try {
       if (!db) {
         return res.status(503).json({

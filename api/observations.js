@@ -2,6 +2,7 @@ const express = require('express');
 const multer = require('multer');
 const { getStorage } = require('firebase-admin/storage');
 const { sendPoachingIncidentNotifications, isPoachingIncident } = require('../services/notificationServices');
+const { verifyAuthBearerAdminOnly } = require('./auth-helper');
 
 const router = express.Router();
 
@@ -89,7 +90,7 @@ const upload = multer({
 
 module.exports = (db) => {
 
-// Middleware to validate API key (simple authentication)
+// Middleware to validate API key (mobile / legacy clients)
 const validateApiKey = (req, res, next) => {
   const apiKey = req.headers['x-api-key'] || req.query.apiKey;
 
@@ -103,11 +104,28 @@ const validateApiKey = (req, res, next) => {
   next();
 };
 
-// Apply API key validation to all routes
-router.use(validateApiKey);
+// API key OR Firebase admin Bearer (admin panel)
+const validateApiKeyOrAdminBearer = async (req, res, next) => {
+  try {
+    const apiKey = req.headers['x-api-key'] || req.query.apiKey;
+    if (apiKey && process.env.API_KEY && apiKey === process.env.API_KEY) {
+      return next();
+    }
+    const v = await verifyAuthBearerAdminOnly(req.headers.authorization);
+    if (!v.ok) {
+      return res.status(401).json({
+        error: 'Unauthorized',
+        message: 'Valid API key or admin session required'
+      });
+    }
+    next();
+  } catch (e) {
+    next(e);
+  }
+};
 
 // GET /api/observations - Fetch observations for map display (READ-ONLY with location data only)
-router.get('/', async (req, res) => {
+router.get('/', validateApiKeyOrAdminBearer, async (req, res) => {
   try {
     // Check if Firebase is initialized
     if (!db) {
@@ -161,7 +179,7 @@ router.get('/', async (req, res) => {
 });
 
 // POST /api/observations - Create new observation
-router.post('/', upload.single('image'), async (req, res) => {
+router.post('/', validateApiKey, upload.single('image'), async (req, res) => {
   try {
     // Check if Firebase is initialized
     if (!db) {
@@ -434,7 +452,7 @@ router.post('/', upload.single('image'), async (req, res) => {
 });
 
 // GET /api/observations/:id/image - Secure image access
-router.get('/:id/image', async (req, res) => {
+router.get('/:id/image', validateApiKeyOrAdminBearer, async (req, res) => {
   try {
     const { id } = req.params;
 
